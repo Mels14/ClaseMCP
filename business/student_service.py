@@ -119,3 +119,80 @@ class StudentService:
         if not ok:
             return {"error": "Estudiante no encontrado"}
         return {"deleted": True}
+
+    def get_dashboard_html_report(self) -> str:
+        print("Generando reporte visual: Iniciando renderizado de Dashboard HTML")
+        
+        # 1. Obtener datos reales del repositorio
+        students = self.repo.get_all()
+        total = len(students)
+        
+        # 2. Calcular métricas
+        if total > 0:
+            avg_age = sum(int(s.get("age", 0)) for s in students) / total
+            # Agrupar por carrera para las barras
+            careers = {}
+            for s in students:
+                c = s.get("career", "N/A")
+                careers[c] = careers.get(c, 0) + 1
+        else:
+            avg_age = 0
+            careers = {}
+
+        # 3. Construir las filas de la tabla dinámicamente
+        table_rows = ""
+        for s in students:
+            table_rows += f"""
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #334155;">{s.get('name')}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #334155;">{s.get('career')}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #334155; text-align: center;">{s.get('semester')}°</td>
+            </tr>
+            """
+
+        # 4. Generar el HTML final (Template)
+        html_content = f"""
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; padding: 25px; border-radius: 15px; border: 1px solid #334155; max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; color: #38bdf8; font-size: 24px;">📊 Dashboard Académico</h2>
+                <span style="background: #1e293b; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: #94a3b8;">Sincronizado</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                <div style="background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #334155;">
+                    <div style="font-size: 28px; font-weight: bold; color: #38bdf8;">{total}</div>
+                    <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">Total Estudiantes</div>
+                </div>
+                <div style="background: #1e293b; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid #334155;">
+                    <div style="font-size: 28px; font-weight: bold; color: #38bdf8;">{round(avg_age, 1)}</div>
+                    <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase;">Promedio Edad</div>
+                </div>
+            </div>
+
+            <h3 style="font-size: 16px; margin-bottom: 10px; color: #f1f5f9;">Distribución de Carreras</h3>
+            <div style="margin-bottom: 25px;">
+                { "".join([f'<div style="margin-bottom: 8px;"><div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;"><span>{c}</span><span>{n}</span></div><div style="background: #334155; height: 6px; border-radius: 3px;"><div style="background: #38bdf8; height: 100%; width: {(n/total)*100 if total > 0 else 0}%; border-radius: 3px;"></div></div></div>' for c, n in careers.items()]) }
+            </div>
+
+            <h3 style="font-size: 16px; margin-bottom: 10px; color: #f1f5f9;">Últimos Registros</h3>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                    <tr style="color: #94a3b8; text-align: left;">
+                        <th style="padding: 10px; border-bottom: 2px solid #334155;">Nombre</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #334155;">Carrera</th>
+                        <th style="padding: 10px; border-bottom: 2px solid #334155; text-align: center;">Sem.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {table_rows if total > 0 else '<tr><td colspan="3" style="text-align:center; padding: 20px; color: #64748b;">No hay datos disponibles</td></tr>'}
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px; font-size: 11px; color: #475569; text-align: center;">
+                Reporte generado automáticamente por el Sistema de Gestión Estudiantil
+            </div>
+        </div>
+        """
+        
+        print(f"Reporte visual finalizado: {total} estudiantes procesados")
+        return html_content

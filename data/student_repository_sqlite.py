@@ -91,3 +91,44 @@ class StudentRepositorySQLite(StudentRepositoryInterface):
         cur.execute("DELETE FROM students WHERE id=?", (student_id,))
         self.conn.commit()
         return cur.rowcount > 0
+    
+    def getultimoingresado(self):
+        cur = self.conn.cursor()
+        query = "SELECT * FROM students ORDER BY created_at DESC LIMIT 1"
+        cur.execute(query)
+        ultimo = cur.fetchone()
+        return ultimo
+
+    def getmenoredad(self):
+        cur = self.conn.cursor()
+        query = "SELECT * FROM students ORDER BY age ASC LIMIT 1"
+        cur.execute(query)
+        student = cur.fetchone()
+        return student
+    
+    def getporcarrera(self, carrera):
+        cur = self.conn.cursor()
+        query = "SELECT * FROM students WHERE career = ?"
+        cur.execute(query, (carrera,))
+        students = cur.fetchall()
+        return students
+
+    def get_dashboard_data(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT COUNT(*), AVG(age) FROM students")
+        total, avg_age = cur.fetchone()
+        
+        # 2. Conteo por carrera
+        cur.execute("SELECT career, COUNT(*) FROM students GROUP BY career")
+        career_stats = {row[0]: row[1] for row in cur.fetchall()}
+        
+        # 3. Conteo por semestre
+        cur.execute("SELECT semester, COUNT(*) FROM students GROUP BY semester")
+        semester_stats = {f"Semestre {row[0]}": row[1] for row in cur.fetchall()}
+
+        return {
+            "total": total,
+            "avg_age": round(avg_age, 2) if avg_age else 0,
+            "careers": career_stats,
+            "semesters": semester_stats
+        }

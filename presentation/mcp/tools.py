@@ -84,3 +84,44 @@ async def get_version():
         str: Current application version.
     """
     return "1.0.1"
+
+@mcp.tool()
+async def getultimoingresado():
+    """
+    Retrieve the very last student that was entered into the system.
+    
+    Returns:
+        The record of the most recently created student.
+    """
+    return service.getultimoingresado()
+
+@mcp.tool()
+async def getmenoredad():
+    """
+    Retrieve the student with the lowest age.
+    
+    Returns:
+        The record of the student with the minimum age value.
+    """
+    return service.getmenoredad()
+
+@mcp.tool()
+async def getporcarrera(career_name: str):
+    """
+    Filter and retrieve students based on their specific career.
+
+    Args:
+        career_name (str): The name of the career to filter by (e.g., 'Ingeniería de Sistemas').
+
+    Returns:
+        List of students belonging to the specified career.
+    """
+    return service.getporcarrera(career_name)
+
+@mcp.tool()
+async def show_dashboard():
+    """
+    Muestra un dashboard visual e interactivo con las estadísticas actuales 
+    de los estudiantes, incluyendo promedios y distribución por carrera.
+    """
+    return service.get_dashboard_html_report()
